@@ -12,23 +12,40 @@ export default new Vuex.Store({
   },
   actions: {
   },
+
   modules: {
+
     blogData:{
       state: () => ({ 
         postList:[],
+        clickedPostId: null,
+        admin: false
+
        }),
       mutations: { 
-        [Mutations.UPDATE_POST](state, payload){
+        [Mutations.READ_POST](state, payload){
           state.postList = payload
-        }
+          console.log('list created and fetched')
+        },
+        [Mutations.UPDATE_CLICKED_ID](state, payload){
+          state.clickedPostId = payload
+        },
+        [Mutations.UPDATE_ADMIN_STATUS](state, payload){
+          state.admin = payload
+        },
+
        },
       actions: { 
         async createPost(context, payload){
           await API.createPost(payload)
         },
         async readPost({commit}){
+          console.log('fetch request sent')
           const data = await API.readPost()
-          commit(Mutations.UPDATE_POST, data)
+          commit(Mutations.READ_POST, data)
+          // commit(Mutations.UPDATE_LOCAL_STORAGE, data)
+          localStorage.setItem('blogList', JSON.stringify(data))
+          
         },
 
         async updatePost(context, payload){
@@ -38,10 +55,22 @@ export default new Vuex.Store({
         async deletePost(context, payload){
           await API.deletePost(payload)
 
+        },
+        updateClickedId(context, payload){
+          context.commit(Mutations.UPDATE_CLICKED_ID, payload)
+        },
+        updateAdminStatus(context, payload){
+          context.commit(Mutations.UPDATE_ADMIN_STATUS, payload)
         }
+
        },
       getters: { 
-        getPostList: state => state.postList
+        getPostList: state => state.postList,
+        getSinglePost: state => state.postList.find(post => post._id == state.clickedPostId),
+        getAdminStatus: state => state.admin,
+        //getSinglePost: state => payload => state.postList.find(post => post._id == payload)
+        
+        
        }
     }
   }
